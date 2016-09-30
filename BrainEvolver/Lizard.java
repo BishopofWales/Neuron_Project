@@ -10,14 +10,19 @@ package BrainEvolver;
  * @author Michael
  */
 public class Lizard {
+    private double _energy;
+    private boolean _isFemale;
+    private double _linearSpeed;
+    private double _angularSpeed;
+    private double _neuronSeed;
     public Lizard(){
         
     }
-    public void acceptStumuli(){
+    public void acceptStumuli(Shape[] worldGeom){
         
     }
     public void actOnStumuli(){
-        
+    
     }
     
 }

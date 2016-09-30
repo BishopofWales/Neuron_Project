@@ -100,7 +100,6 @@ public final class MainController {
     }
     private void executeCommand(String command){
         System.out.print(command);
-        
     }
     private void runBrains(){
         commandField.getText();
@@ -132,7 +131,7 @@ public final class MainController {
         for(int i = 0; i < C.numberOfBrains; i++){
             brainScoreMap.put(brains[i], new boolean[HISTORY_LENGTH]);
         }
-        while(count < 1000){
+        while(true){
             System.out.println("_______________________________");
             if(booleanArrayCount >= HISTORY_LENGTH){
                 booleanArrayCount = 0;
@@ -290,22 +289,7 @@ public final class MainController {
         return score;
        
     }
-    public boolean findIntersect(Point2D.Double line1Point1, Point2D.Double line1Point2, Point2D.Double line2Point1, Point2D.Double line2Point2){
-        double m1 = (line1Point1.y - line1Point2.y)/(line1Point1.x -line1Point2.x);
-        double m2 = (line2Point1.y - line2Point2.y)/(line2Point1.x -line2Point2.x);
-        if(m1-m2 == 0) return false;
-        double b1 = line1Point1.y - m1*line1Point1.x;
-        double b2 = line2Point1.y - m2*line2Point1.x;
-        
-        Point2D.Double intersectPoint = new Point2D.Double();
-        intersectPoint.x = (b2 - b1)/(m1-m2);
-        intersectPoint.y = m1*intersectPoint.x + b1;
-        if(intersectPoint.x <= line2Point1.x != intersectPoint.x <= line2Point2.x && line1Point1.x > line1Point2.x == line1Point1.x > intersectPoint.x && line1Point1.y > line1Point2.y == line1Point1.y > intersectPoint.y){
-            return true;
-        }
-        else return false;
-        
-    }
+    
     public double assessBrain3(Brain rBrain){
         int distanceScore = 0;
         int timeScore = 0;
@@ -316,18 +300,14 @@ public final class MainController {
         
         final double increment = C.fieldOfVision/C.numberOfRods;
         final double offset = -C.fieldOfVision/2;
-        Point2D.Double food = new Point2D.Double(C.roomWidth * Math.random(), C.roomHeight * Math.random());
+        Point2D.Double foodPos = new Point2D.Double();
         Point2D.Double lizard = new Point2D.Double(0,0);
-        while(lizard.distance(food) < C.minFoodDistance || lizard.distance(food) > C.minFoodDistance+1){
-            food.x = C.roomWidth * Math.random();
-            food.y = C.roomHeight * Math.random();
+        while(lizard.distance(foodPos) < C.minFoodDistance || lizard.distance(foodPos) > C.minFoodDistance+1){
+            foodPos.x = C.roomWidth * Math.random();
+            foodPos.y = C.roomHeight * Math.random();
         }
-        //System.out.println(lizard.distance(food));
-        final Point2D.Double[] foodGeom = new Point2D.Double[4];
-        foodGeom[0] = new Point2D.Double(-C.foodWidth/2+food.x,C.foodWidth/2+food.y);
-        foodGeom[1] = new Point2D.Double(C.foodWidth/2+food.x,C.foodWidth/2+food.y);
-        foodGeom[2] = new Point2D.Double(C.foodWidth/2+food.x,-C.foodWidth/2+food.y);
-        foodGeom[3] = new Point2D.Double(-C.foodWidth/2+food.x,-C.foodWidth/2+food.y);
+        Shape food = new Shape( new Point2D.Double[]{new Point2D.Double(-C.foodWidth/2,C.foodWidth/2), new Point2D.Double(C.foodWidth/2,C.foodWidth/2),
+        new Point2D.Double(C.foodWidth/2,-C.foodWidth/2),new Point2D.Double(-C.foodWidth/2,-C.foodWidth/2)},true, foodPos);
         
         for (int i = 0; i < C.numberOfCyclesPerTest; i++){
             if(positionChanged = true){
@@ -336,13 +316,7 @@ public final class MainController {
                 for(int k = 0; k < C.numberOfRods; k++){
                     double sightLine = rotation + offset + k*increment;
                     Point2D.Double sight = new Point2D.Double(Math.cos(sightLine) + lizard.x, Math.sin(sightLine) + lizard.y);
-                    
-                    for(int j = 0; j < foodGeom.length; j++){
-                        if(findIntersect(lizard,sight,foodGeom[j],foodGeom[(j+1)%foodGeom.length])){
-                            rBrain.addToNeuronPolarization(k, C.rodDetectPolAdd);
-                            break;
-                        }
-                    }
+                    if(food.rayCollidesWith(lizard.x, lizard.y, sight.x, sight.y)) rBrain.addToNeuronPolarization(k, C.rodDetectPolAdd);
                 }
                 positionChanged = false;
             }
@@ -357,11 +331,11 @@ public final class MainController {
                 lizard.x += C.lizardLinearSpeed * Math.cos(rotation);
                 lizard.y += C.lizardLinearSpeed * Math.sin(rotation);
             }
-            if(lizard.distance(food)<5){
+            if(lizard.distance(food.getLocation())<5){
                 return C.numberOfCyclesPerTest - i;
             }
         }
-        return -lizard.distance(food);
+        return -lizard.distance(food.getLocation());
         
     }
 }

@@ -39,4 +39,5 @@ public class C {
     public static double portionOfBrainsForNumberOne = .4;
     public static double proportionReductionPerPlace = .4;
     public static int[] rewardArray = {40,20,10,5,5,3,2,2,2,1,1,1,1,1,1};
+    public static double chanceOfLizardBeingFemale = .5;
 }
