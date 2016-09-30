@@ -301,8 +301,8 @@ public final class MainController {
         final double increment = C.fieldOfVision/C.numberOfRods;
         final double offset = -C.fieldOfVision/2;
         Point2D.Double foodPos = new Point2D.Double();
-        Point2D.Double lizard = new Point2D.Double(0,0);
-        while(lizard.distance(foodPos) < C.minFoodDistance || lizard.distance(foodPos) > C.minFoodDistance+1){
+        Lizard lizard = new Lizard(0,0);
+        while(lizard.getPosition().distance(foodPos) < C.minFoodDistance || lizard.getPosition().distance(foodPos) > C.minFoodDistance+1){
             foodPos.x = C.roomWidth * Math.random();
             foodPos.y = C.roomHeight * Math.random();
         }
@@ -315,8 +315,8 @@ public final class MainController {
                 //
                 for(int k = 0; k < C.numberOfRods; k++){
                     double sightLine = rotation + offset + k*increment;
-                    Point2D.Double sight = new Point2D.Double(Math.cos(sightLine) + lizard.x, Math.sin(sightLine) + lizard.y);
-                    if(food.rayCollidesWith(lizard.x, lizard.y, sight.x, sight.y)) rBrain.addToNeuronPolarization(k, C.rodDetectPolAdd);
+                    Point2D.Double sight = new Point2D.Double(Math.cos(sightLine) + lizard.getPosition().x, Math.sin(sightLine) + lizard.getPosition().y);
+                    if(food.rayCollidesWith(lizard.getPosition().x, lizard.getPosition().y, sight.x, sight.y)) rBrain.addToNeuronPolarization(k, C.rodDetectPolAdd);
                 }
                 positionChanged = false;
             }
@@ -328,14 +328,14 @@ public final class MainController {
                 rotation += C.lizardAngularSpeed;
             }
             if(rBrain.getNeuronPolarization(52) > C.threshold){
-                lizard.x += C.lizardLinearSpeed * Math.cos(rotation);
-                lizard.y += C.lizardLinearSpeed * Math.sin(rotation);
+                lizard.getPosition().x += C.lizardLinearSpeed * Math.cos(rotation);
+                lizard.getPosition().y += C.lizardLinearSpeed * Math.sin(rotation);
             }
-            if(lizard.distance(food.getLocation())<5){
+            if(lizard.getPosition().distance(food.getLocation())<5){
                 return C.numberOfCyclesPerTest - i;
             }
         }
-        return -lizard.distance(food.getLocation());
+        return -lizard.getPosition().distance(food.getLocation());
         
     }
 }
