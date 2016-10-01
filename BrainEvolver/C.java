@@ -10,11 +10,11 @@ package BrainEvolver;
  * @author Michael
  */
 public class C {
-    //It seems decreasing mutation change and increasing population size works best..(maybe
+    //It seems decreasing mutation change and increasing population size works best..(maybe)
     public static int maximumNeurons = 100000;
     public static int maximumSynapses = 160;
    
-    public static int numberOfCyclesPerTest = 100;
+    public static int numberOfCyclesPerTest = 80;
     public static double threshold = 40;
     public static double polarizationLossPerCycle = 1;
     public static int numberOfSynapses = 6;
@@ -40,4 +40,10 @@ public class C {
     public static double proportionReductionPerPlace = .4;
     public static int[] rewardArray = {40,20,10,5,5,3,2,2,2,1,1,1,1,1,1};
     public static double chanceOfLizardBeingFemale = .5;
+    
+    //Lizard Constants
+    public static double energyRequiredToSplit = 40;
+    public static double energyAtWhichALizardDies = 0;
+    public static int numberOfChildrenALizardHas = 2;
+    public static int minimumNumberOfLizards = 60;
 }

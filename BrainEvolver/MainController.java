@@ -161,7 +161,13 @@ public final class MainController {
         }
     }
     private void runLizardPen(){
+        PenLizard[] lizards = new PenLizard[C.minimumNumberOfLizards];
+        for(int i = 0; i < C.minimumNumberOfLizards; i++){
+            //lizards[i] = new PenLizard();
+        }
+        while(true){
         
+        }
     }
     private void evolveBrains(){
         //This function should be called when the brain array is orgainized form best to worst, it will reward the best brains, turn the lesser brains into the offspring of the better brains.
@@ -177,8 +183,10 @@ public final class MainController {
         int indexToChangeAt = C.rewardArray[0];
         for(int j = C.numberOfPassingBrains; j < C.numberOfBrains; j++){
             brains[j] = mutateBrain(brains[breedingBrainIndex],brains[j]);
+            //if(breedingBrainIndex == 0) System.out.println("!");
             
             if(j-C.numberOfPassingBrains == indexToChangeAt){
+                
                 breedingBrainIndex ++;
                 indexToChangeAt +=C.rewardArray[breedingBrainIndex];
             }
@@ -295,47 +303,22 @@ public final class MainController {
         int timeScore = 0;
         double[] scores = new double[2];
         
-        boolean positionChanged = true;
-        double rotation = Math.PI/2;
-        
-        final double increment = C.fieldOfVision/C.numberOfRods;
-        final double offset = -C.fieldOfVision/2;
         Point2D.Double foodPos = new Point2D.Double();
-        Lizard lizard = new Lizard(0,0);
+        PenLizard lizard = new PenLizard(0,0,rBrain);
         while(lizard.getPosition().distance(foodPos) < C.minFoodDistance || lizard.getPosition().distance(foodPos) > C.minFoodDistance+1){
             foodPos.x = C.roomWidth * Math.random();
             foodPos.y = C.roomHeight * Math.random();
         }
         Shape food = new Shape( new Point2D.Double[]{new Point2D.Double(-C.foodWidth/2,C.foodWidth/2), new Point2D.Double(C.foodWidth/2,C.foodWidth/2),
         new Point2D.Double(C.foodWidth/2,-C.foodWidth/2),new Point2D.Double(-C.foodWidth/2,-C.foodWidth/2)},true, foodPos);
-        
+        Shape [] worldGeom = new Shape[] {food};
         for (int i = 0; i < C.numberOfCyclesPerTest; i++){
-            if(positionChanged = true){
-                //Code for updating what is "sees".
-                //
-                for(int k = 0; k < C.numberOfRods; k++){
-                    double sightLine = rotation + offset + k*increment;
-                    Point2D.Double sight = new Point2D.Double(Math.cos(sightLine) + lizard.getPosition().x, Math.sin(sightLine) + lizard.getPosition().y);
-                    if(food.rayCollidesWith(lizard.getPosition().x, lizard.getPosition().y, sight.x, sight.y)) rBrain.addToNeuronPolarization(k, C.rodDetectPolAdd);
-                }
-                positionChanged = false;
-            }
-            rBrain.updateBrain();
-            if(rBrain.getNeuronPolarization(50) > C.threshold){
-                rotation += C.lizardAngularSpeed;
-            }
-            if(rBrain.getNeuronPolarization(51) > C.threshold){
-                rotation += C.lizardAngularSpeed;
-            }
-            if(rBrain.getNeuronPolarization(52) > C.threshold){
-                lizard.getPosition().x += C.lizardLinearSpeed * Math.cos(rotation);
-                lizard.getPosition().y += C.lizardLinearSpeed * Math.sin(rotation);
-            }
+            lizard.acceptStumuli(worldGeom);
+            lizard.actOnStumuli();
             if(lizard.getPosition().distance(food.getLocation())<5){
                 return C.numberOfCyclesPerTest - i;
             }
         }
         return -lizard.getPosition().distance(food.getLocation());
-        
     }
 }

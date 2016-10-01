@@ -15,13 +15,12 @@ public class Lizard {
     private double _energy;
     private double _linearSpeed;
     private double _angularSpeed;
-    private double _neuronSeed;
-    private Point2D.Double _position;
+    private final Point2D.Double _position;
     public Lizard(double startingX,double startingY){
         _position = new Point2D.Double(startingX,startingY);
     }
     public void acceptStumuli(Shape[] worldGeom){
-    
+        
     }
     public void updatePosition(double newX,double newY){
         _position.x = newX;
@@ -32,6 +31,18 @@ public class Lizard {
     }
     public Point2D.Double getPosition(){
         return  _position;
+    }
+    public boolean hasDied(){
+        if(_energy < C.energyAtWhichALizardDies){
+            return true;
+        }
+        else return false;
+    }
+    public boolean hasSplit(){
+        if(_energy > C.energyRequiredToSplit){
+            return true;
+        }
+        else return false;
     }
     
 }
