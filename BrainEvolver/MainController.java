@@ -1,5 +1,5 @@
 //TO DO
-//-Implement ScoreCard interface
+//-Finish lizard pen
 //-
 /*
  * To change this license header, choose License Headers in Project Properties.
@@ -16,9 +16,7 @@ import java.awt.geom.Point2D;
 import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
-import java.util.Scanner;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.*;
 
 import javax.swing.JFrame;
 import javax.swing.JTextField;
@@ -89,11 +87,11 @@ public final class MainController {
         scoreComparator = new ScoreComparator();
         //Controls cycle of assesment and evolution.
         brains = new Brain[C.numberOfBrains];
-        
         for(int i = 0; i < C.numberOfBrains; i++){
             brains[i] = new Brain();
-        }
-        
+            brains[i].randomizeSynapses();
+        } 
+        runLizardPen();
         assessForProximityAndSpeed();
         assessForConsistency();
         runBrains();
@@ -161,13 +159,60 @@ public final class MainController {
         }
     }
     private void runLizardPen(){
-        PenLizard[] lizards = new PenLizard[C.minimumNumberOfLizards];
+        Map foodShapeFoodMap = new HashMap<Shape,Food>();
+        ArrayList<Lizard> lizards = new ArrayList<Lizard>();
+        Shape[] worldGeom = new Shape[C.numberOfFoodsInPen];
         for(int i = 0; i < C.minimumNumberOfLizards; i++){
-            //lizards[i] = new PenLizard();
+            Brain newBrain =  new Brain();
+            newBrain.randomizeSynapses();
+            lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,newBrain));
         }
+        for(int i = 0; i < worldGeom.length; i++){
+            Point2D.Double foodPos = new Point2D.Double(Math.random()*C.roomWidth, Math.random()*C.roomHeight);
+            worldGeom[i] = new Shape( new Point2D.Double[]{new Point2D.Double(-C.foodWidth/2,C.foodWidth/2), new Point2D.Double(C.foodWidth/2,C.foodWidth/2),
+            new Point2D.Double(C.foodWidth/2,-C.foodWidth/2),new Point2D.Double(-C.foodWidth/2,-C.foodWidth/2)},true, foodPos);
+            foodShapeFoodMap.put(worldGeom[i], new Food());
+        }
+        int frameCount = 0;
         while(true){
-        
+            for(int i = 0; i < lizards.size(); i++){
+                lizards.get(i).acceptStumuli(worldGeom);
+            }
+            for(int i = 0; i < lizards.size();i++){
+                lizards.get(i).actOnStumuli();
+                for(Shape food:worldGeom){
+                    Food refFood = (Food)foodShapeFoodMap.get(food);
+                    if(refFood.readyToGrowAgain(frameCount)){
+                        food.visible = true;
+                        food.changePosition(Math.random()*C.roomWidth,Math.random()*C.roomHeight);
+                    }
+                    if(lizards.get(i).getPosition().distance(food.getLocation()) < 5 && food.visible){
+                        food.visible = false;
+                        refFood.eaten(frameCount);
+                        lizards.get(i).setEnergy(lizards.get(i).getEnergy()+C.energyInFood);
+                        //System.out.println("ate food");
+                    }
+                    
+                }
+                if(lizards.get(i).hasSplit()){ 
+                    lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,mutateBrain(lizards.get(i).getBrain(),new Brain())));
+                    lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,mutateBrain(lizards.get(i).getBrain(),new Brain())));
+                    lizards.remove(lizards.get(i));
+                }
+                else if(lizards.get(i).hasDied()){
+                    lizards.remove(lizards.get(i));
+                    i--;
+                }
+            }
+            while(lizards.size()<C.minimumNumberOfLizards){
+                Brain newBrain = new Brain();
+                newBrain.randomizeSynapses();
+                lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,newBrain));
+            }
+            frameCount ++;
+            System.out.println(lizards.size());
         }
+        
     }
     private void evolveBrains(){
         //This function should be called when the brain array is orgainized form best to worst, it will reward the best brains, turn the lesser brains into the offspring of the better brains.
@@ -183,8 +228,7 @@ public final class MainController {
         int indexToChangeAt = C.rewardArray[0];
         for(int j = C.numberOfPassingBrains; j < C.numberOfBrains; j++){
             brains[j] = mutateBrain(brains[breedingBrainIndex],brains[j]);
-            //if(breedingBrainIndex == 0) System.out.println("!");
-            
+            //if(breedingBrainIndex == 0) System.out.println("!");            
             if(j-C.numberOfPassingBrains == indexToChangeAt){
                 
                 breedingBrainIndex ++;
@@ -218,7 +262,7 @@ public final class MainController {
         return brainToReset;
     }
     public Brain mutateBrain(Brain parentBrain,Brain childBrain){
-    
+        
         for(int i = 0; i < C.numberOfNeurons; i++){
             Synapse[] mutatedNeuronSynapses = new Synapse[C.numberOfSynapses];
             
@@ -304,7 +348,7 @@ public final class MainController {
         double[] scores = new double[2];
         
         Point2D.Double foodPos = new Point2D.Double();
-        PenLizard lizard = new PenLizard(0,0,rBrain);
+        Lizard lizard = new Lizard(0,0,rBrain);
         while(lizard.getPosition().distance(foodPos) < C.minFoodDistance || lizard.getPosition().distance(foodPos) > C.minFoodDistance+1){
             foodPos.x = C.roomWidth * Math.random();
             foodPos.y = C.roomHeight * Math.random();

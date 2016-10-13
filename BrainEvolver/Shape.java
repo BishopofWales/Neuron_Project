@@ -13,6 +13,7 @@ import java.awt.geom.Point2D;
  */
 public class Shape {
     Point2D.Double[] _points;
+    public boolean visible;
     public Point2D.Double _location;
     boolean _closed;
     public Shape(Point2D.Double[] points, boolean closed,Point2D.Double registrationPoint){
@@ -25,6 +26,7 @@ public class Shape {
             point.x += _location.x;
             point.y += _location.y;
         }
+        visible = true;
     }
     public void changePosition(Double newX, Double newY){
         _location.x = newX;
@@ -34,6 +36,7 @@ public class Shape {
         return _location;
     }
     public boolean rayCollidesWith(double rayStartX,double rayStartY,double rayEndX,double rayEndY){
+        if(!visible) return false;
         for(int j = 0; j < _points.length; j++){
             if(findIntersect(new Point2D.Double(rayStartX,rayStartY),new Point2D.Double(rayEndX,rayEndY),_points[j],_points[(j+1)%_points.length])){
                 return true;
@@ -54,8 +57,6 @@ public class Shape {
         if(intersectPoint.x <= line2Point1.x != intersectPoint.x <= line2Point2.x && line1Point1.x > line1Point2.x == line1Point1.x > intersectPoint.x && line1Point1.y > line1Point2.y == line1Point1.y > intersectPoint.y){
             return true;
         }
-        else return false;
-        
+        else return false;   
     }
-    
 }

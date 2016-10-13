@@ -26,9 +26,13 @@ public class Brain{
     public Brain(){
         _name = Names.names[ThreadLocalRandom.current().nextInt(0,Names.names.length)] +Integer.toString(ThreadLocalRandom.current().nextInt(0,1000));
         _neurons = new Neuron[C.numberOfNeurons];
+        for (int i = 0; i < _neurons.length; i++) { 
+            _neurons[i] = new Neuron();
+        }
+    }
+    public void randomizeSynapses(){
         for (int i = 0; i < _neurons.length; i++) {
             
-            _neurons[i] = new Neuron();
             Synapse[] outgoingConnections = new Synapse[C.numberOfSynapses];
             for (int l = 0; l < outgoingConnections.length; l++) {
                 outgoingConnections[l] = new Synapse();
@@ -36,7 +40,7 @@ public class Brain{
                 outgoingConnections[l].setConnectionStrength(20);
             }
             _neurons[i].setSynapses(outgoingConnections);
-        }   
+        }
     }
     public String getName(){
         return _name;
