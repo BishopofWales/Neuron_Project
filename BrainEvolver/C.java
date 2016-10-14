@@ -45,13 +45,13 @@ public class C {
     public static double energyRequiredToSplit = 270;
     public static double energyAtWhichALizardDies = 0;
     public static int numberOfChildrenALizardHas = 2;
-    public static int minimumNumberOfLizards = 30;
+    public static int minimumNumberOfLizards = 10;
     public static double startingEnergy = 20;
     public static double energyLossPerAction = .12;
     
     //Pen Constants
-    public static double penWidth = 1800;
-    public static double penHeight = 1800;
+    public static double penWidth = 18000;
+    public static double penHeight = 18000;
     public static int framesForFoodToGrow = 40;
     public static int numberOfFoodsInPen = 100;
     public static double energyInFood = 30;

@@ -21,28 +21,16 @@ import java.util.*;
 import javax.swing.JFrame;
 import javax.swing.JTextField;
 
-public final class MainController {
+public final class Simulator extends Thread{
     private final Brain[] brains;
     private final ScoreComparator scoreComparator;
     private static final int BRAININDEX = 0;
     private static final int SCORE = 1;
-    private JTextField commandField;
-    private JFrame commandFieldFrame;
-    private Keychecker keychecker;
-    
-    public MainController(){
-        commandField = new JTextField();
-
-        commandField.addKeyListener(keychecker =new Keychecker());
-        
-        commandFieldFrame = new JFrame();
-
-        commandFieldFrame.add(commandField);
-
-        commandFieldFrame.setSize(400, 350);
-
-        commandFieldFrame.setVisible(true);
-        
+    @Override
+    public void run(){
+        runLizardPen();
+    }
+    public Simulator(){
         String fileName = "temp.txt";
         try {
             // Assume default encoding.
@@ -91,18 +79,15 @@ public final class MainController {
             brains[i] = new Brain();
             brains[i].randomizeSynapses();
         } 
-        runLizardPen();
-        assessForProximityAndSpeed();
-        assessForConsistency();
-        runBrains();
+        
+        //assessForProximityAndSpeed();
+        //assessForConsistency();
+        //runBrains();
     }
     private void executeCommand(String command){
         System.out.print(command);
     }
     private void runBrains(){
-        commandField.getText();
-        commandField.setText("");
-        keychecker.enterPressed();
         int count = 0;
         while(count < 300){
             System.out.println("______________________________");
@@ -158,10 +143,12 @@ public final class MainController {
             
         }
     }
+    ArrayList<Lizard> lizards;
+    Shape[] worldGeom;
     private void runLizardPen(){
         Map foodShapeFoodMap = new HashMap<Shape,Food>();
-        ArrayList<Lizard> lizards = new ArrayList<Lizard>();
-        Shape[] worldGeom = new Shape[C.numberOfFoodsInPen];
+        lizards = new ArrayList<Lizard>();
+        worldGeom = new Shape[C.numberOfFoodsInPen];
         for(int i = 0; i < C.minimumNumberOfLizards; i++){
             Brain newBrain =  new Brain();
             newBrain.randomizeSynapses();
@@ -249,10 +236,9 @@ public final class MainController {
             Arrays.sort(brains, scoreComparator);
             evolveBrains();
             count ++;
-            if(keychecker.enterPressed())return;
         }
     }
-    public Brain resetBrain(Brain brain){
+    private Brain resetBrain(Brain brain){
         Brain brainToReset = brain;
         //brainToReset.setScore(0);
         for(int i = 0; i < C.numberOfNeurons; i++){
@@ -261,7 +247,21 @@ public final class MainController {
         brain.setScore(0);
         return brainToReset;
     }
-    public Brain mutateBrain(Brain parentBrain,Brain childBrain){
+    public Point2D.Double[] getLizardPos(){
+       Point2D.Double[] lizardPosArray = new Point2D.Double[lizards.size()];
+        for(int i = 0; i < lizardPosArray.length;i++){
+            lizardPosArray[i] = lizards.get(i).getPosition();
+        }
+        return lizardPosArray;
+    }
+    public Point2D.Double[] getFoodPos(){
+        Point2D.Double[] foodPosArray = new Point2D.Double[worldGeom.length];
+        for(int i = 0; i < worldGeom.length; i++){
+            foodPosArray[i] = worldGeom[i].getLocation();
+        }
+        return foodPosArray;
+    }
+    private Brain mutateBrain(Brain parentBrain,Brain childBrain){
         
         for(int i = 0; i < C.numberOfNeurons; i++){
             Synapse[] mutatedNeuronSynapses = new Synapse[C.numberOfSynapses];
