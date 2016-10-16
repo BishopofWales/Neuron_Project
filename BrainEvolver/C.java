@@ -11,48 +11,52 @@ package BrainEvolver;
  */
 public class C {
     //It seems decreasing mutation change and increasing population size works best..(maybe)
-    public static int maximumNeurons = 100000;
-    public static int maximumSynapses = 160;
+    public static final int MAXIMUM_NEURONS = 100000;
+    public static final int MAXIMUM_SYNAPSES = 160;
    
-    public static int numberOfCyclesPerTest = 80;
-    public static double threshold = 40;
-    public static double polarizationLossPerCycle = 1;
-    public static int numberOfSynapses = 6;
-    public static int numberOfNeurons = 200;//1000; 
-    public static float roomWidth = 75;
-    public static float roomHeight = 75;
-    public static int numberOfRods = 8;
-    public static double fieldOfVision = (float)Math.PI/2f;
-    public static double foodWidth = 5;
-    public static double rodDetectPolAdd = 44;
-    public static double lizardLinearSpeed = .3;
-    public static double lizardAngularSpeed = 20*Math.PI/180;
-    public static double minFoodDistance = 20;
+    public static final int NUMBER_OF_CYCLES_PER_TEST = 80;
+    public static final double THRESHOLD = 40;
+    public static final double POLARIZATION_LOSS_PER_CYCLE = 1;
+    public static final int numberOfSynapses = 6;
+    public static final int numberOfNeurons = 200;//1000; 
+    public static final float roomWidth = 75;
+    public static final float roomHeight = 75;
+    public static final int NUMBER_OF_RODS = 9;
+    public static final double fieldOfVision = (float)Math.PI/2f;
+    public static final double foodWidth = 5;
+    public static final double rodDetectPolAdd = 44;
+    public static final double lizardLinearSpeed = .3;
+    public static final double lizardAngularSpeed = 20*Math.PI/180;
+    public static final double minFoodDistance = 20;
     
-    public static double firedTogetherMultiplier = 1.01;
-    public static double firedApartMultiplier = .99;
+    public static final double firedTogetherMultiplier = 1.01;
+    public static final double firedApartMultiplier = .99;
     //Mutation Constants
-    public static double chanceOfSynapseMutation = .02;
+    public static final double chanceOfSynapseMutation = .02;
     //Evolution Constants
-    public static int numberOfBrains = 110;
-    public static int numberOfPassingBrains = 15;
-    public static double portionOfBrainsForNumberOne = .4;
-    public static double proportionReductionPerPlace = .4;
-    public static int[] rewardArray = {40,20,10,5,5,3,2,2,2,1,1,1,1,1,1};
-    public static double chanceOfLizardBeingFemale = .5;
+    public static final int numberOfBrains = 110;
+    public static final int numberOfPassingBrains = 15;
+    public static final double portionOfBrainsForNumberOne = .4;
+    public static final double proportionReductionPerPlace = .4;
+    public static final int[] rewardArray = {40,20,10,5,5,3,2,2,2,1,1,1,1,1,1};
+    public static final double chanceOfLizardBeingFemale = .5;
     
     //Lizard Constants
-    public static double energyRequiredToSplit = 270;
-    public static double energyAtWhichALizardDies = 0;
-    public static int numberOfChildrenALizardHas = 2;
-    public static int minimumNumberOfLizards = 10;
-    public static double startingEnergy = 20;
-    public static double energyLossPerAction = .12;
+    public static final double energyRequiredToSplit = 100;
+    public static final double energyAtWhichALizardDies = 0;
+    public static final int NUMBER_OF_CHILDREN_A_LIZARD_HAS = 2;
+    public static final int MINIMUM_NUMBER_OF_LIZARDS = 10;
+    public static final double STARTING_ENERGY = 20;
+    public static final double ENERGY_LOSS_PER_ACTION = .12;
     
     //Pen Constants
-    public static double penWidth = 18000;
-    public static double penHeight = 18000;
-    public static int framesForFoodToGrow = 40;
-    public static int numberOfFoodsInPen = 100;
-    public static double energyInFood = 30;
+    public static final double PEN_WIDTH = 1000;
+    public static final double PEN_HEIGHT = 400;
+    public static final int FRAMES_FOR_FOOD_TO_GROW = 40;
+    public static final int NUMBER_OF_FOODS_IN_PEN = 1000;
+    public static final double ENERGY_IN_FOOD = 30;
+    
+    //Render Constants
+    public static final int LIZARD_RENDER_INDEX = 0;
+    public static final int FOOD_RENDER_INDEX = 1;
 }

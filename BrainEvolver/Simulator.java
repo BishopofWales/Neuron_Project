@@ -17,21 +17,21 @@ import java.util.Arrays;
 import java.util.concurrent.ThreadLocalRandom;
 import java.io.*;
 import java.util.*;
-
-import javax.swing.JFrame;
-import javax.swing.JTextField;
+import java.util.concurrent.BlockingQueue;
 
 public final class Simulator extends Thread{
     private final Brain[] brains;
     private final ScoreComparator scoreComparator;
     private static final int BRAININDEX = 0;
     private static final int SCORE = 1;
+    private final BlockingQueue _displayQueue;
     @Override
     public void run(){
         runLizardPen();
     }
-    public Simulator(){
+    public Simulator(BlockingQueue displayQueue){
         String fileName = "temp.txt";
+        _displayQueue = displayQueue;
         try {
             // Assume default encoding.
             FileWriter fileWriter =
@@ -143,19 +143,23 @@ public final class Simulator extends Thread{
             
         }
     }
-    ArrayList<Lizard> lizards;
-    Shape[] worldGeom;
+    
     private void runLizardPen(){
-        Map foodShapeFoodMap = new HashMap<Shape,Food>();
-        lizards = new ArrayList<Lizard>();
-        worldGeom = new Shape[C.numberOfFoodsInPen];
-        for(int i = 0; i < C.minimumNumberOfLizards; i++){
+        ArrayList<Lizard> lizards;
+        Shape[] worldGeom;
+        Point2D.Double[][] objectsToRender = new Point2D.Double[10][];
+        objectsToRender[C.LIZARD_RENDER_INDEX] = new Point2D.Double[1000];
+        objectsToRender[C.FOOD_RENDER_INDEX] = new Point2D.Double[C.NUMBER_OF_FOODS_IN_PEN];
+        Map<Shape,Food> foodShapeFoodMap = new HashMap();
+        lizards = new ArrayList();
+        worldGeom = new Shape[C.NUMBER_OF_FOODS_IN_PEN];
+        for(int i = 0; i < C.MINIMUM_NUMBER_OF_LIZARDS; i++){
             Brain newBrain =  new Brain();
             newBrain.randomizeSynapses();
-            lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,newBrain));
+            lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,newBrain));
         }
         for(int i = 0; i < worldGeom.length; i++){
-            Point2D.Double foodPos = new Point2D.Double(Math.random()*C.roomWidth, Math.random()*C.roomHeight);
+            Point2D.Double foodPos = new Point2D.Double(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT);
             worldGeom[i] = new Shape( new Point2D.Double[]{new Point2D.Double(-C.foodWidth/2,C.foodWidth/2), new Point2D.Double(C.foodWidth/2,C.foodWidth/2),
             new Point2D.Double(C.foodWidth/2,-C.foodWidth/2),new Point2D.Double(-C.foodWidth/2,-C.foodWidth/2)},true, foodPos);
             foodShapeFoodMap.put(worldGeom[i], new Food());
@@ -171,19 +175,19 @@ public final class Simulator extends Thread{
                     Food refFood = (Food)foodShapeFoodMap.get(food);
                     if(refFood.readyToGrowAgain(frameCount)){
                         food.visible = true;
-                        food.changePosition(Math.random()*C.roomWidth,Math.random()*C.roomHeight);
+                        food.changePosition(Math.random()*C.PEN_WIDTH,Math.random()*C.PEN_HEIGHT);
                     }
                     if(lizards.get(i).getPosition().distance(food.getLocation()) < 5 && food.visible){
                         food.visible = false;
                         refFood.eaten(frameCount);
-                        lizards.get(i).setEnergy(lizards.get(i).getEnergy()+C.energyInFood);
+                        lizards.get(i).setEnergy(lizards.get(i).getEnergy()+C.ENERGY_IN_FOOD);
                         //System.out.println("ate food");
                     }
                     
                 }
                 if(lizards.get(i).hasSplit()){ 
-                    lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,mutateBrain(lizards.get(i).getBrain(),new Brain())));
-                    lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,mutateBrain(lizards.get(i).getBrain(),new Brain())));
+                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain())));
+                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain())));
                     lizards.remove(lizards.get(i));
                 }
                 else if(lizards.get(i).hasDied()){
@@ -191,13 +195,26 @@ public final class Simulator extends Thread{
                     i--;
                 }
             }
-            while(lizards.size()<C.minimumNumberOfLizards){
+            while(lizards.size()<C.MINIMUM_NUMBER_OF_LIZARDS){
                 Brain newBrain = new Brain();
                 newBrain.randomizeSynapses();
-                lizards.add(new Lizard(Math.random()*C.roomWidth, Math.random()*C.roomHeight,newBrain));
+                lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,newBrain));
             }
             frameCount ++;
             System.out.println(lizards.size());
+            {
+                int count = 0;
+                for(int i = 0; i < worldGeom.length; i++){
+                    if(worldGeom[i].visible){
+                         objectsToRender[C.FOOD_RENDER_INDEX][count] = worldGeom[i].getLocation();
+                         count++;
+                    }
+                }
+            }
+            for(int i = 0; i < lizards.size();i++){
+                objectsToRender[C.LIZARD_RENDER_INDEX][i] = lizards.get(i).getPosition();
+            }
+            _displayQueue.offer(objectsToRender);
         }
         
     }
@@ -226,8 +243,7 @@ public final class Simulator extends Thread{
     }
     private void assessForProximityAndSpeed(){
         int count = 0;
-        while(count < 500)
-        {
+        while(count < 500){
             System.out.println("____________________________");
             for(int i = 0; i < C.numberOfBrains; i++){
                 brains[i].setScore(assessBrain3(brains[i]));
@@ -246,20 +262,6 @@ public final class Simulator extends Thread{
         }
         brain.setScore(0);
         return brainToReset;
-    }
-    public Point2D.Double[] getLizardPos(){
-       Point2D.Double[] lizardPosArray = new Point2D.Double[lizards.size()];
-        for(int i = 0; i < lizardPosArray.length;i++){
-            lizardPosArray[i] = lizards.get(i).getPosition();
-        }
-        return lizardPosArray;
-    }
-    public Point2D.Double[] getFoodPos(){
-        Point2D.Double[] foodPosArray = new Point2D.Double[worldGeom.length];
-        for(int i = 0; i < worldGeom.length; i++){
-            foodPosArray[i] = worldGeom[i].getLocation();
-        }
-        return foodPosArray;
     }
     private Brain mutateBrain(Brain parentBrain,Brain childBrain){
         
@@ -285,10 +287,10 @@ public final class Simulator extends Thread{
     }
     public int assessBrain(Brain rBrain){
         int score = 0;
-        for (int i = 0; i < C.numberOfCyclesPerTest; i++){
+        for (int i = 0; i < C.NUMBER_OF_CYCLES_PER_TEST; i++){
             if(i % 20 == 0 && i < 201) rBrain.addToNeuronPolarization(1,50);
             rBrain.updateBrain();
-            if(rBrain.getNeuronPolarization(2) > C.threshold)
+            if(rBrain.getNeuronPolarization(2) > C.THRESHOLD)
             score ++;
         }
         return score;
@@ -298,7 +300,7 @@ public final class Simulator extends Thread{
         int mistakes = 0;
         int currentStimulatedNeuron = 0;
         //rBrain.addToNeuronPolarization(1,100);
-        for (int i = 0; i < C.numberOfCyclesPerTest; i++){
+        for (int i = 0; i < C.NUMBER_OF_CYCLES_PER_TEST; i++){
             if(i%100 == 0){
                 currentStimulatedNeuron  = ThreadLocalRandom.current().nextInt(0, 4);
             }
@@ -356,11 +358,11 @@ public final class Simulator extends Thread{
         Shape food = new Shape( new Point2D.Double[]{new Point2D.Double(-C.foodWidth/2,C.foodWidth/2), new Point2D.Double(C.foodWidth/2,C.foodWidth/2),
         new Point2D.Double(C.foodWidth/2,-C.foodWidth/2),new Point2D.Double(-C.foodWidth/2,-C.foodWidth/2)},true, foodPos);
         Shape [] worldGeom = new Shape[] {food};
-        for (int i = 0; i < C.numberOfCyclesPerTest; i++){
+        for (int i = 0; i < C.NUMBER_OF_CYCLES_PER_TEST; i++){
             lizard.acceptStumuli(worldGeom);
             lizard.actOnStumuli();
             if(lizard.getPosition().distance(food.getLocation())<5){
-                return C.numberOfCyclesPerTest - i;
+                return C.NUMBER_OF_CYCLES_PER_TEST - i;
             }
         }
         return -lizard.getPosition().distance(food.getLocation());

@@ -1,4 +1,6 @@
+
 /*
+
  * To change this license header, choose License Headers in Project Properties.
  * To change this template file, choose Tools | Templates
  * and open the template in the editor.
@@ -21,16 +23,16 @@ public class Lizard {
     public Lizard(double startingX,double startingY, Brain startingBrain){
         _position = new Point2D.Double(startingX,startingY);
         _brain = startingBrain;
-        _energy = C.startingEnergy;
+        _energy = C.STARTING_ENERGY;
     }
     public Brain getBrain(){
         return _brain;
     }
     public void acceptStumuli(Shape[] worldGeom){
-        final double increment = C.fieldOfVision/C.numberOfRods;
+        final double increment = C.fieldOfVision/C.NUMBER_OF_RODS;
         
         final double offset = -C.fieldOfVision/2;
-        for(int k = 0; k < C.numberOfRods; k++){
+        for(int k = 0; k < C.NUMBER_OF_RODS; k++){
             double sightLine = _rotation + offset + k*increment;
             Point2D.Double sight = new Point2D.Double(Math.cos(sightLine) + _position.x, Math.sin(sightLine) + _position.y);
             for(int i = 0; i < worldGeom.length; i++){
@@ -44,16 +46,16 @@ public class Lizard {
     }
     public void actOnStumuli(){
         _brain.updateBrain();
-        _energy -= C.energyLossPerAction;
-        if(_brain.getNeuronPolarization(50) > C.threshold){
+        _energy -= C.ENERGY_LOSS_PER_ACTION;
+        if(_brain.getNeuronPolarization(50) > C.THRESHOLD){
             _rotation += C.lizardAngularSpeed;
             //System.out.println("moved left");
         }
-        if(_brain.getNeuronPolarization(51) > C.threshold){
+        if(_brain.getNeuronPolarization(51) > C.THRESHOLD){
             _rotation -= C.lizardAngularSpeed;
             //System.out.println("moved right");
         }
-        if(_brain.getNeuronPolarization(52) > C.threshold){
+        if(_brain.getNeuronPolarization(52) > C.THRESHOLD){
             _position.x += C.lizardLinearSpeed * Math.cos(_rotation);
             _position.y += C.lizardLinearSpeed * Math.sin(_rotation);
             //System.out.println("moved forward");

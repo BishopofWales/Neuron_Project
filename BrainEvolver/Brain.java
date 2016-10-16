@@ -65,14 +65,14 @@ public class Brain{
         //update brain loop, checks each of the  neurons, sees if their action potential is above the threshold, if it is, raise the action potential of its subsidiaries
         //Then put the polariazaotin back at zero
         for (int i  = 0; i < _neurons.length; i++) {
-            if (_neurons[i].getPolarization() > C.threshold) {
+            if (_neurons[i].getPolarization() > C.THRESHOLD) {
                 _neurons[i].setActionPotentialReached(true);
                 _neurons[i].dePolarize();
             }
             //move polarization towards zero
-            else if(_neurons[i].getPolarization()  > C.polarizationLossPerCycle && _neurons[i].getPolarization() < -C.polarizationLossPerCycle) _neurons[i].dePolarize();
-            else if (_neurons[i].getPolarization() < 0) _neurons[i].addToPolarization(C.polarizationLossPerCycle);
-            else if (_neurons[i].getPolarization() > 0) _neurons[i].addToPolarization(-C.polarizationLossPerCycle);
+            else if(_neurons[i].getPolarization()  > C.POLARIZATION_LOSS_PER_CYCLE && _neurons[i].getPolarization() < -C.POLARIZATION_LOSS_PER_CYCLE) _neurons[i].dePolarize();
+            else if (_neurons[i].getPolarization() < 0) _neurons[i].addToPolarization(C.POLARIZATION_LOSS_PER_CYCLE);
+            else if (_neurons[i].getPolarization() > 0) _neurons[i].addToPolarization(-C.POLARIZATION_LOSS_PER_CYCLE);
         }
         for (Neuron neuron : _neurons){
             if(neuron.getActionPotentialReached() == true){
