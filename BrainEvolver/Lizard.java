@@ -29,15 +29,15 @@ public class Lizard {
         return _brain;
     }
     public void acceptStumuli(Shape[] worldGeom){
-        final double increment = C.fieldOfVision/C.NUMBER_OF_RODS;
+        final double increment = C.FIELD_OF_VISION/C.NUMBER_OF_RODS;
         
-        final double offset = -C.fieldOfVision/2;
+        final double offset = -C.FIELD_OF_VISION/2;
         for(int k = 0; k < C.NUMBER_OF_RODS; k++){
             double sightLine = _rotation + offset + k*increment;
             Point2D.Double sight = new Point2D.Double(Math.cos(sightLine) + _position.x, Math.sin(sightLine) + _position.y);
             for(int i = 0; i < worldGeom.length; i++){
                 if(worldGeom[i].rayCollidesWith(_position.x, _position.y, sight.x, sight.y)){
-                    _brain.addToNeuronPolarization(k, C.rodDetectPolAdd);
+                    _brain.addToNeuronPolarization(k, C.ROD_DETECT_POLAR_ADD);
                     //System.out.println("sight");
                     break;
                 }
