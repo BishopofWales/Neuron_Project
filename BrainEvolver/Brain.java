@@ -25,7 +25,7 @@ public class Brain{
     }
     public Brain(){
         _name = Names.names[ThreadLocalRandom.current().nextInt(0,Names.names.length)] +Integer.toString(ThreadLocalRandom.current().nextInt(0,1000));
-        _neurons = new Neuron[C.numberOfNeurons];
+        _neurons = new Neuron[C.NUMBER_OF_NEURONS];
         for (int i = 0; i < _neurons.length; i++) { 
             _neurons[i] = new Neuron();
         }
@@ -33,7 +33,7 @@ public class Brain{
     public void randomizeSynapses(){
         for (int i = 0; i < _neurons.length; i++) {
             
-            Synapse[] outgoingConnections = new Synapse[C.numberOfSynapses];
+            Synapse[] outgoingConnections = new Synapse[C.NUMBER_OF_SYNAPSES];
             for (int l = 0; l < outgoingConnections.length; l++) {
                 outgoingConnections[l] = new Synapse();
                 outgoingConnections[l].setNeuronID(ThreadLocalRandom.current().nextInt(0, _neurons.length));
@@ -74,15 +74,18 @@ public class Brain{
             else if (_neurons[i].getPolarization() < 0) _neurons[i].addToPolarization(C.POLARIZATION_LOSS_PER_CYCLE);
             else if (_neurons[i].getPolarization() > 0) _neurons[i].addToPolarization(-C.POLARIZATION_LOSS_PER_CYCLE);
         }
+        
         for (Neuron neuron : _neurons){
-            if(neuron.getActionPotentialReached() == true){
+            if(neuron.getActionPotentialReached()){
                 for (Synapse synapse : neuron.getSynapses()){
+                    /*
                     if(_neurons[synapse.getNeuronID()].getActionPotentialReached() == true){
                         synapse.setConnectionStrength(synapse.getConnectionStrength()*C.firedTogetherMultiplier);
                     }
                     else{
                         synapse.setConnectionStrength(synapse.getConnectionStrength()*C.firedApartMultiplier);
                     }
+                    */
                     _neurons[synapse.getNeuronID()].addToPolarization(synapse.getConnectionStrength());
                     
                 }
@@ -91,5 +94,6 @@ public class Brain{
         for (Neuron neuron : _neurons){
             neuron.setActionPotentialReached(false);
         }
+        
     }
 }

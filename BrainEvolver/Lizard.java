@@ -48,16 +48,16 @@ public class Lizard {
         _brain.updateBrain();
         _energy -= C.ENERGY_LOSS_PER_ACTION;
         if(_brain.getNeuronPolarization(50) > C.THRESHOLD){
-            _rotation += C.lizardAngularSpeed;
+            _rotation += C.LIZARD_ANGULAR_SPEED;
             //System.out.println("moved left");
         }
         if(_brain.getNeuronPolarization(51) > C.THRESHOLD){
-            _rotation -= C.lizardAngularSpeed;
+            _rotation -= C.LIZARD_ANGULAR_SPEED;
             //System.out.println("moved right");
         }
         if(_brain.getNeuronPolarization(52) > C.THRESHOLD){
-            _position.x += C.lizardLinearSpeed * Math.cos(_rotation);
-            _position.y += C.lizardLinearSpeed * Math.sin(_rotation);
+            _position.x += C.LIZARD_LINEAR_SPEED * Math.cos(_rotation);
+            _position.y += C.LIZARD_LINEAR_SPEED * Math.sin(_rotation);
             //System.out.println("moved forward");
         }
     }
@@ -69,13 +69,13 @@ public class Lizard {
         return  _position;
     }
     public boolean hasDied(){
-        if(_energy < C.energyAtWhichALizardDies){
+        if(_energy < C.ENERGY_AT_WHICH_LIZARD_DIES){
             return true;
         }
         else return false;
     }
     public boolean hasSplit(){
-        if(_energy > C.energyRequiredToSplit){
+        if(_energy > C.ENERGY_REQUIRED_TO_SPLIT){
             return true;
         }
         else return false;

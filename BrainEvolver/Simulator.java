@@ -25,12 +25,14 @@ public final class Simulator extends Thread{
     private static final int BRAININDEX = 0;
     private static final int SCORE = 1;
     private final BlockingQueue _displayQueue;
+    private BoolWrapper _paused;
     @Override
-    public void run(){
+    public synchronized void run(){
         runLizardPen();
     }
-    public Simulator(BlockingQueue displayQueue){
+    public Simulator(BlockingQueue displayQueue, BoolWrapper paused){
         String fileName = "temp.txt";
+        _paused = paused;
         _displayQueue = displayQueue;
         try {
             // Assume default encoding.
@@ -73,75 +75,12 @@ public final class Simulator extends Thread{
             
         }
         scoreComparator = new ScoreComparator();
-        //assessForProximityAndSpeed();
-        //assessForConsistency();
-        //runBrains();
     }
-    private void executeCommand(String command){
-        System.out.print(command);
-    }
-    private void runBrains(Brain[] brains){
-        int count = 0;
-        while(count < 300){
-            System.out.println("______________________________");
-            for(int i = 0; i < C.numberOfBrains; i++){
-                brains[i] = resetBrain(brains[i]);
-                brains[i].setScore(assessBrain3(brains[i]));
-            }
-            Arrays.sort(brains, scoreComparator);
-            for(int i = 0; i < C.numberOfPassingBrains; i++){
-                //score display here
-                System.out.print("Index:" + i + "Score:");
-                System.out.print(brains[i].getScore());
-                System.out.println(brains[i].getName() +"*");               
-            }
-            count ++;
-        }
-    }
-    private void assessForConsistency(Brain[] brains){
-        //Instead of testing purely for speed to the food, this assesment looks for consistent results, rewarding brains that get to the food reliably.
-        final int HISTORY_LENGTH = 20;
-        int count = 0;
-        int booleanArrayCount = 0;
-        Map brainScoreMap = new HashMap<>();
-        for(int i = 0; i < C.numberOfBrains; i++){
-            brainScoreMap.put(brains[i], new boolean[HISTORY_LENGTH]);
-        }
-        while(true){
-            System.out.println("_______________________________");
-            if(booleanArrayCount >= HISTORY_LENGTH){
-                booleanArrayCount = 0;
-            }
-            for(int i = 0; i < C.numberOfBrains; i++){
-                boolean[] successTracker = (boolean[])brainScoreMap.get(brains[i]);
-                //A value greater than zero means the brain made it to the end
-                if(assessBrain3(brains[i])>0){
-                    successTracker[booleanArrayCount] = true;
-                }
-                else{
-                    successTracker[booleanArrayCount] = false;
-                }
-                int successes = 0;
-                for(Boolean success:successTracker){
-                    if(success){
-                       successes ++;
-                    }
-                }
-                brains[i].setScore(successes);
-            }
-            Arrays.sort(brains, scoreComparator);
-            evolveBrains(brains);
-            booleanArrayCount ++;
-            count ++;
-            
-        }
-    }
-    
     private void runLizardPen(){
         ArrayList<Lizard> lizards;
         Shape[] worldGeom;
         Point2D.Double[][] objectsToRender = new Point2D.Double[10][];
-        objectsToRender[C.LIZARD_RENDER_INDEX] = new Point2D.Double[1000];
+        objectsToRender[C.LIZARD_RENDER_INDEX] = new Point2D.Double[50000];
         objectsToRender[C.FOOD_RENDER_INDEX] = new Point2D.Double[C.NUMBER_OF_FOODS_IN_PEN];
         Map<Shape,Food> foodShapeFoodMap = new HashMap();
         lizards = new ArrayList();
@@ -176,37 +115,35 @@ public final class Simulator extends Thread{
                         lizards.get(i).setEnergy(lizards.get(i).getEnergy()+C.ENERGY_IN_FOOD);
                         //System.out.println("ate food");
                     }
-                    
                 }
                 if(lizards.get(i).hasSplit()){ 
                     lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain())));
                     lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain())));
                     lizards.remove(lizards.get(i));
+                    i--;
                 }
                 else if(lizards.get(i).hasDied()){
                     lizards.remove(lizards.get(i));
                     i--;
                 }
             }
-            /*
-            while(lizards.size()<C.MINIMUM_NUMBER_OF_LIZARDS){
-                Brain newBrain = new Brain();
-                newBrain.randomizeSynapses();
-                lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,newBrain));
-            }
-            */
+            
+            //If the number of lizards falls below a certain amount
+            //The program puts the lizard into another type of assesment, which selects for lizards that move towards food
+            //The hope being that this will provide a baseline lizard which will be able to produce some offspring in the real lizardpen
             if(lizards.size() < C.MINIMUM_NUMBER_OF_LIZARDS){
-                Brain[] lizardBrains = new Brain[lizards.size()];
+                Brain[] lizardBrains = new Brain[C.MINIMUM_NUMBER_OF_LIZARDS];
+                
                 for(int i = 0; i < lizards.size(); i++){
                     lizardBrains[i] = lizards.get(i).getBrain();
-                    
+                }
+                for(int i = lizards.size(); i < C.MINIMUM_NUMBER_OF_LIZARDS; i++){
+                    lizardBrains[i] = lizards.get(ThreadLocalRandom.current().nextInt(0,lizards.size())).getBrain();
                 }
                 assessForProximityAndSpeed(lizardBrains);
                 lizards.clear();
                 for(int i = 0; i < C.MINIMUM_NUMBER_OF_LIZARDS; i++){
-                    
                     lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT, lizardBrains[i]));
-                    
                 }
             }
             frameCount ++;
@@ -224,11 +161,47 @@ public final class Simulator extends Thread{
                 objectsToRender[C.LIZARD_RENDER_INDEX][i] = lizards.get(i).getPosition();
             }
             _displayQueue.offer(objectsToRender);
+            while(_paused.getBoolean()){
+                try{
+                    this.sleep(1000);
+                }
+                catch(InterruptedException e){
+                    
+                }
+            }
+            
         }
-        
     }
     private void evolveBrains(Brain[] brains){
-        int numberOfBrainsInNextGen = brains.length/C.RATIO_OF_BRAINS_IN_NEXT_GEN;
+        
+        int numberOfBrainsInNextGen = (int)(brains.length/C.RATIO_OF_BRAINS_IN_NEXT_GEN);
+        ArrayList<Brain> brainList = new ArrayList(Arrays.asList(brains));
+        for(int i = 0; i < numberOfBrainsInNextGen;i++){
+            for(int k = 0; k < brainList.size();k++){
+                if(Math.random()< C.CHANCE_BRAIN_SELECTION){
+                    brains[i] = brainList.get(k);
+                    brainList.remove(k);
+                    break;
+                }
+                else if(k == brainList.size()-1){
+                    brains[i] = brainList.get(k);
+                    brainList.remove(k);
+                    break;
+                }
+            }
+        }
+        for(int i = numberOfBrainsInNextGen; i < brains.length; i++){
+            for(int k  = 0; k < numberOfBrainsInNextGen; k++){
+                if(Math.random() < C.CHANCE_OF_BRAIN_COPY){
+                    brains[i] = mutateBrain(brains[k],brains[i]);
+                    break;
+                }
+                else if(k == numberOfBrainsInNextGen){
+                    brains[i] = mutateBrain(brains[k],brains[i]);
+                    break;
+                }
+            }
+        }
         //This function should be called when the brain array is orgainized form best to worst, it will reward the best brains, turn the lesser brains into the offspring of the better brains.
         
             //The brains that don't pass become a mutated version of one of the brains that did.
@@ -236,36 +209,39 @@ public final class Simulator extends Thread{
     }
     private void assessForProximityAndSpeed(Brain[] brains){
         int count = 0;
-        while(count < 500){
+        while(count < 1){
             System.out.println("____________________________");
             for(int i = 0; i < brains.length; i++){
                 brains[i].setScore(assessBrain3(brains[i]));
             }
              //Sort score here
             Arrays.sort(brains, scoreComparator);
+            for(int i = 0; i < 10;i++){
+                System.out.println(brains[i].getScore());
+            }
             evolveBrains(brains);
             count ++;
         }
     }
     private Brain resetBrain(Brain brain){
         Brain brainToReset = brain;
-        //brainToReset.setScore(0);
-        for(int i = 0; i < C.numberOfNeurons; i++){
+        for(int i = 0; i < C.NUMBER_OF_NEURONS; i++){
             brainToReset.getNeuron(i).dePolarize();
+            
         }
         brain.setScore(0);
         return brainToReset;
     }
     private Brain mutateBrain(Brain parentBrain,Brain childBrain){
         
-        for(int i = 0; i < C.numberOfNeurons; i++){
-            Synapse[] mutatedNeuronSynapses = new Synapse[C.numberOfSynapses];
+        for(int i = 0; i < C.NUMBER_OF_NEURONS; i++){
+            Synapse[] mutatedNeuronSynapses = new Synapse[C.NUMBER_OF_SYNAPSES];
             
-            for (int j = 0; j < C.numberOfSynapses; j++) {
+            for (int j = 0; j < C.NUMBER_OF_SYNAPSES; j++) {
                 mutatedNeuronSynapses[j] = new Synapse();
                 //if(C.percentChanceOfSynapseMutation >= ThreadLocalRandom.current().nextInt(0, 101)) {
-                if(C.chanceOfSynapseMutation >= Math.random()){
-                    mutatedNeuronSynapses[j].setNeuronID(ThreadLocalRandom.current().nextInt(0, C.numberOfNeurons));
+                if(C.CHANCE_OF_SYNAPSE_MUTATION >= Math.random()){
+                    mutatedNeuronSynapses[j].setNeuronID(ThreadLocalRandom.current().nextInt(0, C.NUMBER_OF_NEURONS));
                 }
                 else {
                     mutatedNeuronSynapses[j].setNeuronID(parentBrain.getNeuron(i).getSynapses()[j].getNeuronID());
@@ -278,64 +254,6 @@ public final class Simulator extends Thread{
         }
         return childBrain;
     }
-    public int assessBrain(Brain rBrain){
-        int score = 0;
-        for (int i = 0; i < C.NUMBER_OF_CYCLES_PER_TEST; i++){
-            if(i % 20 == 0 && i < 201) rBrain.addToNeuronPolarization(1,50);
-            rBrain.updateBrain();
-            if(rBrain.getNeuronPolarization(2) > C.THRESHOLD)
-            score ++;
-        }
-        return score;
-    }
-    public int assessBrain2(Brain rBrain){
-        int score = 0;
-        int mistakes = 0;
-        int currentStimulatedNeuron = 0;
-        //rBrain.addToNeuronPolarization(1,100);
-        for (int i = 0; i < C.NUMBER_OF_CYCLES_PER_TEST; i++){
-            if(i%100 == 0){
-                currentStimulatedNeuron  = ThreadLocalRandom.current().nextInt(0, 4);
-            }
-            if(i%4 == 0){
-                rBrain.addToNeuronPolarization(currentStimulatedNeuron, 20);
-            }
-            switch(currentStimulatedNeuron){
-                case 0:
-                    if(rBrain.getNeuronPolarization(4) > 40) score ++;
-                    if (rBrain.getNeuronPolarization(5) > 40 || rBrain.getNeuronPolarization(6) > 40 || rBrain.getNeuronPolarization(7) > 40) {
-                        score -=40;
-                        mistakes ++;
-                    }
-                    break;
-                case 1:
-                    if(rBrain.getNeuronPolarization(5) > 40) score ++;
-                    if (rBrain.getNeuronPolarization(4) > 40 || rBrain.getNeuronPolarization(6) > 40 || rBrain.getNeuronPolarization(7) > 40) {
-                        score -=40;
-                        mistakes ++;
-                    }
-                    break;
-                case 2:
-                    if(rBrain.getNeuronPolarization(6) > 40) score ++;
-                    if (rBrain.getNeuronPolarization(4) > 40 || rBrain.getNeuronPolarization(5) > 40 || rBrain.getNeuronPolarization(7) > 40){
-                        score -=40;
-                        mistakes ++;
-                    }
-                    break;
-                case 3:
-                    if(rBrain.getNeuronPolarization(7) > 40) score ++;
-                    if (rBrain.getNeuronPolarization(4) > 40 || rBrain.getNeuronPolarization(5) > 40 || rBrain.getNeuronPolarization(6) > 40){
-                        score -=40;
-                        mistakes ++;
-                    }
-                    break;
-            }
-            rBrain.updateBrain();
-        }
-        //System.out.println("Mistakes:" + mistakes);
-        return score;
-       
-    }
     
     public double assessBrain3(Brain rBrain){
         int distanceScore = 0;
@@ -344,7 +262,7 @@ public final class Simulator extends Thread{
         
         Point2D.Double foodPos = new Point2D.Double();
         Lizard lizard = new Lizard(0,0,rBrain);
-        while(lizard.getPosition().distance(foodPos) < C.minFoodDistance || lizard.getPosition().distance(foodPos) > C.minFoodDistance+1){
+        while(lizard.getPosition().distance(foodPos) < C.MIN_FOOD_DISTANCE || lizard.getPosition().distance(foodPos) > C.MIN_FOOD_DISTANCE+1){
             foodPos.x = C.ROOM_WIDTH * Math.random();
             foodPos.y = C.ROOM_HEIGHT * Math.random();
         }
