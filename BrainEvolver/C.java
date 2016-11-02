@@ -13,13 +13,10 @@ public class C {
     public static final int MAXIMUM_NEURONS = 100000;
     public static final int MAXIMUM_SYNAPSES = 160;
    
-    public static final int NUMBER_OF_CYCLES_PER_TEST = 80;
     public static final double THRESHOLD = 40;
     public static final double POLARIZATION_LOSS_PER_CYCLE = 1;
     public static final int NUMBER_OF_SYNAPSES = 6;
     public static final int NUMBER_OF_NEURONS = 200; 
-    public static final float ROOM_WIDTH = 75;
-    public static final float ROOM_HEIGHT = 75;
     public static final int NUMBER_OF_RODS = 9;
     public static final double FIELD_OF_VISION = Math.PI/2;
     public static final double FOOD_WIDTH = 5;
@@ -38,7 +35,7 @@ public class C {
     public static final double CHANCE_BRAIN_SELECTION = .5;
     public static final double CHANCE_OF_BRAIN_COPY = .2;
     //Lizard Constants
-    public static final double ENERGY_REQUIRED_TO_SPLIT = 100;
+    public static double ENERGY_REQUIRED_TO_SPLIT = 100;
     public static final double ENERGY_AT_WHICH_LIZARD_DIES = 0;
     public static final int NUMBER_OF_CHILDREN_A_LIZARD_HAS = 2;
     public static final int MINIMUM_NUMBER_OF_LIZARDS = 60;
@@ -48,7 +45,7 @@ public class C {
     //Pen Constants
     public static final double PEN_WIDTH = 1000;
     public static final double PEN_HEIGHT = 400;
-    public static final int FRAMES_FOR_FOOD_TO_GROW = 30;
+    public static int FRAMES_FOR_FOOD_TO_GROW = 30;
     public static final int NUMBER_OF_FOODS_IN_PEN = 1500;
     public static final double ENERGY_IN_FOOD = 30;
     

@@ -21,6 +21,7 @@ import java.util.concurrent.ArrayBlockingQueue;
 import javafx.scene.input.KeyEvent;
 import javafx.event.EventHandler;
 import java.util.ArrayList;
+import java.util.Scanner;
 public class BrainEvolver extends Application {
      static Simulator mainSimulator;  
     /**
@@ -58,12 +59,11 @@ public class BrainEvolver extends Application {
                 if ( !input.contains(code) )
                     input.add( code );
                 if(code.equals("P")){
-                    //if(paused.getBoolean())
-                        //mainSimulator.notify();
-                    
-                    //else 
-                    paused.setBoolean(!paused.getBoolean());
-                    //System.out.println(paused.toString());
+                 
+                    if(!paused.getBoolean()){
+                        paused.setBoolean(true);
+                        takeInput();
+                    }
                 }
             }
         });
@@ -107,5 +107,14 @@ public class BrainEvolver extends Application {
             }
         }.start();
         theStage.show();
+       
+    }
+    private void takeInput(){
+        System.out.println("Please input food regrow time (previous time was: "+C.FRAMES_FOR_FOOD_TO_GROW+")");
+        Scanner kbd = new Scanner (System.in);
+        C.FRAMES_FOR_FOOD_TO_GROW = kbd.nextInt();
+        System.out.println("Please input energy for lizard to split time (previous energy was: "+C.ENERGY_REQUIRED_TO_SPLIT+")");
+        C.ENERGY_REQUIRED_TO_SPLIT = kbd.nextDouble();
+        paused.setBoolean(false);
     }
 }

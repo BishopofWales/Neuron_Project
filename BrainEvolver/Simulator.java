@@ -22,8 +22,6 @@ import java.util.concurrent.BlockingQueue;
 public final class Simulator extends Thread{
     //private final Brain[] brains;
     private final ScoreComparator scoreComparator;
-    private static final int BRAININDEX = 0;
-    private static final int SCORE = 1;
     private final BlockingQueue _displayQueue;
     private BoolWrapper _paused;
     @Override
@@ -131,20 +129,12 @@ public final class Simulator extends Thread{
             //If the number of lizards falls below a certain amount
             //The program puts the lizard into another type of assesment, which selects for lizards that move towards food
             //The hope being that this will provide a baseline lizard which will be able to produce some offspring in the real lizardpen
-            if(lizards.size() < C.MINIMUM_NUMBER_OF_LIZARDS){
-                Brain[] lizardBrains = new Brain[C.MINIMUM_NUMBER_OF_LIZARDS];
+            while(lizards.size() < C.MINIMUM_NUMBER_OF_LIZARDS){
                 
-                for(int i = 0; i < lizards.size(); i++){
-                    lizardBrains[i] = lizards.get(i).getBrain();
-                }
-                for(int i = lizards.size(); i < C.MINIMUM_NUMBER_OF_LIZARDS; i++){
-                    lizardBrains[i] = lizards.get(ThreadLocalRandom.current().nextInt(0,lizards.size())).getBrain();
-                }
-                assessForProximityAndSpeed(lizardBrains);
-                lizards.clear();
-                for(int i = 0; i < C.MINIMUM_NUMBER_OF_LIZARDS; i++){
-                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT, lizardBrains[i]));
-                }
+                Brain newBrain = new Brain();
+                newBrain.randomizeSynapses();
+                lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT, newBrain));
+                
             }
             frameCount ++;
             System.out.println(lizards.size());
@@ -171,6 +161,12 @@ public final class Simulator extends Thread{
             }
             
         }
+    }
+    public void setEnergyForLizardReproduction(double energy){
+        
+    }
+    public void setFoodReGrowTime(int cycles){
+        
     }
     private void evolveBrains(Brain[] brains){
         
@@ -207,22 +203,6 @@ public final class Simulator extends Thread{
             //The brains that don't pass become a mutated version of one of the brains that did.
         
     }
-    private void assessForProximityAndSpeed(Brain[] brains){
-        int count = 0;
-        while(count < 1){
-            System.out.println("____________________________");
-            for(int i = 0; i < brains.length; i++){
-                brains[i].setScore(assessBrain3(brains[i]));
-            }
-             //Sort score here
-            Arrays.sort(brains, scoreComparator);
-            for(int i = 0; i < 10;i++){
-                System.out.println(brains[i].getScore());
-            }
-            evolveBrains(brains);
-            count ++;
-        }
-    }
     private Brain resetBrain(Brain brain){
         Brain brainToReset = brain;
         for(int i = 0; i < C.NUMBER_OF_NEURONS; i++){
@@ -253,29 +233,5 @@ public final class Simulator extends Thread{
             resetBrain(childBrain);
         }
         return childBrain;
-    }
-    
-    public double assessBrain3(Brain rBrain){
-        int distanceScore = 0;
-        int timeScore = 0;
-        double[] scores = new double[2];
-        
-        Point2D.Double foodPos = new Point2D.Double();
-        Lizard lizard = new Lizard(0,0,rBrain);
-        while(lizard.getPosition().distance(foodPos) < C.MIN_FOOD_DISTANCE || lizard.getPosition().distance(foodPos) > C.MIN_FOOD_DISTANCE+1){
-            foodPos.x = C.ROOM_WIDTH * Math.random();
-            foodPos.y = C.ROOM_HEIGHT * Math.random();
-        }
-        Shape food = new Shape( new Point2D.Double[]{new Point2D.Double(-C.FOOD_WIDTH/2,C.FOOD_WIDTH/2), new Point2D.Double(C.FOOD_WIDTH/2,C.FOOD_WIDTH/2),
-        new Point2D.Double(C.FOOD_WIDTH/2,-C.FOOD_WIDTH/2),new Point2D.Double(-C.FOOD_WIDTH/2,-C.FOOD_WIDTH/2)},true, foodPos);
-        Shape [] worldGeom = new Shape[] {food};
-        for (int i = 0; i < C.NUMBER_OF_CYCLES_PER_TEST; i++){
-            lizard.acceptStumuli(worldGeom);
-            lizard.actOnStumuli();
-            if(lizard.getPosition().distance(food.getLocation())<5){
-                return C.NUMBER_OF_CYCLES_PER_TEST - i;
-            }
-        }
-        return -lizard.getPosition().distance(food.getLocation());
     }
 }
