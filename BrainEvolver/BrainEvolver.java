@@ -113,8 +113,16 @@ public class BrainEvolver extends Application {
         System.out.println("Please input food regrow time (previous time was: "+C.FRAMES_FOR_FOOD_TO_GROW+")");
         Scanner kbd = new Scanner (System.in);
         C.FRAMES_FOR_FOOD_TO_GROW = kbd.nextInt();
-        System.out.println("Please input energy for lizard to split time (previous energy was: "+C.ENERGY_REQUIRED_TO_SPLIT+")");
-        C.ENERGY_REQUIRED_TO_SPLIT = kbd.nextDouble();
+        System.out.println("Please input age  for lizard to split (previous energy was: "+C.AGE_REQUIRED_TO_SPLIT+")");
+        C.AGE_REQUIRED_TO_SPLIT = kbd.nextDouble();
+        System.out.println("Save lizard array?");
+        /*
+        if(kbd.next() == "y"){
+            System.out.println("Please input name of file to save lizards");
+            mainSimulator.saveLizards(kbd.next());
+        }
+        */
+                
         paused.setBoolean(false);
     }
 }

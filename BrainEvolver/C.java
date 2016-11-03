@@ -35,12 +35,12 @@ public class C {
     public static final double CHANCE_BRAIN_SELECTION = .5;
     public static final double CHANCE_OF_BRAIN_COPY = .2;
     //Lizard Constants
-    public static double ENERGY_REQUIRED_TO_SPLIT = 100;
+    public static double AGE_REQUIRED_TO_SPLIT = 90;
     public static final double ENERGY_AT_WHICH_LIZARD_DIES = 0;
     public static final int NUMBER_OF_CHILDREN_A_LIZARD_HAS = 2;
     public static final int MINIMUM_NUMBER_OF_LIZARDS = 60;
     public static final double STARTING_ENERGY = 20;
-    public static final double ENERGY_LOSS_PER_ACTION = .06;
+    public static final double ENERGY_LOSS_PER_ACTION = .25;
     
     //Pen Constants
     public static final double PEN_WIDTH = 1000;

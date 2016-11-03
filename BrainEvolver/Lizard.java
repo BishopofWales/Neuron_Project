@@ -17,13 +17,15 @@ public class Lizard {
     private double _energy;
     private double _linearSpeed;
     private double _angularSpeed;
+    private final int _wasBorn;
     private final Point2D.Double _position;
     private final Brain _brain;
     private double _rotation = Math.PI/2;
-    public Lizard(double startingX,double startingY, Brain startingBrain){
+    public Lizard(double startingX,double startingY, Brain startingBrain,int startingTime){
         _position = new Point2D.Double(startingX,startingY);
         _brain = startingBrain;
         _energy = C.STARTING_ENERGY;
+        _wasBorn = startingTime;
     }
     public Brain getBrain(){
         return _brain;
@@ -72,13 +74,13 @@ public class Lizard {
         if(_energy < C.ENERGY_AT_WHICH_LIZARD_DIES){
             return true;
         }
-        else return false;
+        return false;
     }
-    public boolean hasSplit(){
-        if(_energy > C.ENERGY_REQUIRED_TO_SPLIT){
+    public boolean hasSplit(int currentTime){
+        if((currentTime - _wasBorn) > C.AGE_REQUIRED_TO_SPLIT){
             return true;
         }
-        else return false;
+        return false;
     }
     public void setEnergy(double newEnergy){
         _energy = newEnergy;

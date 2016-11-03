@@ -23,7 +23,11 @@ public final class Simulator extends Thread{
     //private final Brain[] brains;
     private final ScoreComparator scoreComparator;
     private final BlockingQueue _displayQueue;
-    private BoolWrapper _paused;
+    private FileWriter fileWriter;
+    private BufferedWriter bufferedWriter;
+    private BufferedReader bufferedReader;
+    private final BoolWrapper _paused;
+    private ArrayList<Lizard> lizards;
     @Override
     public synchronized void run(){
         runLizardPen();
@@ -32,39 +36,17 @@ public final class Simulator extends Thread{
         String fileName = "temp.txt";
         _paused = paused;
         _displayQueue = displayQueue;
-        try {
-            // Assume default encoding.
-            FileWriter fileWriter =
-                new FileWriter(fileName);
-
-            // Always wrap FileWriter in BufferedWriter.
-            BufferedWriter bufferedWriter = new BufferedWriter(fileWriter);
-            // Note that write() does not automatically
-            // append a newline character.
-            bufferedWriter.write("Hello now,");
-            bufferedWriter.write(" here is some new text.");
-            bufferedWriter.newLine();
-            bufferedWriter.write("We are writing");
-            bufferedWriter.write(" the text to the file.");
-
-            // Always close files.
-            bufferedWriter.close();
-        }
-        catch(IOException f) {
-            System.out.println(
-                "Error writing to file '"
-                + fileName + "'");
-            // Or we could just do this:
-            // ex.printStackTrace();
-        }
-        BufferedReader testReader;
+        
+        scoreComparator = new ScoreComparator();
+    }
+    public void loadLizards(String fileName){
         try{
             FileReader testFileReader = new FileReader("text.txt");
-            testReader =  new BufferedReader(testFileReader);
-            while(testReader.ready()){
-                System.out.println(testReader.readLine());
+            bufferedReader =  new BufferedReader(testFileReader);
+            while(bufferedReader.ready()){
+                System.out.println(bufferedReader.readLine());
             }
-            testReader.close();
+            bufferedReader.close();
         }
         catch(FileNotFoundException e){
             System.out.println("File is missing, yo.");
@@ -72,21 +54,55 @@ public final class Simulator extends Thread{
         catch(IOException e){
             
         }
-        scoreComparator = new ScoreComparator();
+    }
+    public void saveLizards(String fileName){
+        try {
+               // Assume default encoding.
+               fileWriter = new FileWriter(fileName);
+               
+               // Always wrap FileWriter in BufferedWriter.
+               bufferedWriter = new BufferedWriter(fileWriter);
+               for(Lizard lizard:lizards){
+                   bufferedWriter.write("*");
+                   Neuron[] neuronsToWrite = lizard.getBrain().getNeurons();
+                   bufferedWriter.newLine();
+                   bufferedWriter.write(neuronsToWrite.length);
+                   for(int i = 0; i < neuronsToWrite.length; i++){
+                       bufferedWriter.write("**");
+                       bufferedWriter.newLine();
+                       Synapse[] neuronSynapses = neuronsToWrite[i].getSynapses();
+                       bufferedWriter.write(neuronSynapses.length);
+                       for(int k = 0; k < neuronSynapses.length; k++){
+                           bufferedWriter.write(neuronSynapses[k].getNeuronID());
+                           bufferedWriter.newLine();
+                       }
+                       bufferedWriter.newLine();
+                   }
+                   bufferedWriter.newLine();
+               }
+               // Always close files.
+               bufferedWriter.close();
+           }
+           catch(IOException f) {
+               System.out.println("Error writing to file '"+ fileName + "'");
+               // Or we could just do this:
+               // ex.printStackTrace();
+           }
+
     }
     private void runLizardPen(){
-        ArrayList<Lizard> lizards;
         Shape[] worldGeom;
         Point2D.Double[][] objectsToRender = new Point2D.Double[10][];
         objectsToRender[C.LIZARD_RENDER_INDEX] = new Point2D.Double[50000];
         objectsToRender[C.FOOD_RENDER_INDEX] = new Point2D.Double[C.NUMBER_OF_FOODS_IN_PEN];
         Map<Shape,Food> foodShapeFoodMap = new HashMap();
         lizards = new ArrayList();
+        int frameCount = 0;
         worldGeom = new Shape[C.NUMBER_OF_FOODS_IN_PEN];
         for(int i = 0; i < C.MINIMUM_NUMBER_OF_LIZARDS; i++){
             Brain newBrain =  new Brain();
             newBrain.randomizeSynapses();
-            lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,newBrain));
+            lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,newBrain,frameCount));
         }
         for(int i = 0; i < worldGeom.length; i++){
             Point2D.Double foodPos = new Point2D.Double(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT);
@@ -94,7 +110,7 @@ public final class Simulator extends Thread{
             new Point2D.Double(C.FOOD_WIDTH/2,-C.FOOD_WIDTH/2),new Point2D.Double(-C.FOOD_WIDTH/2,-C.FOOD_WIDTH/2)},true, foodPos);
             foodShapeFoodMap.put(worldGeom[i], new Food());
         }
-        int frameCount = 0;
+        
         while(true){
             for(int i = 0; i < lizards.size(); i++){
                 lizards.get(i).acceptStumuli(worldGeom);
@@ -114,9 +130,9 @@ public final class Simulator extends Thread{
                         //System.out.println("ate food");
                     }
                 }
-                if(lizards.get(i).hasSplit()){ 
-                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain())));
-                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain())));
+                if(lizards.get(i).hasSplit(frameCount)){ 
+                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain()),frameCount));
+                    lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT,mutateBrain(lizards.get(i).getBrain(),new Brain()),frameCount));
                     lizards.remove(lizards.get(i));
                     i--;
                 }
@@ -133,8 +149,7 @@ public final class Simulator extends Thread{
                 
                 Brain newBrain = new Brain();
                 newBrain.randomizeSynapses();
-                lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT, newBrain));
-                
+                lizards.add(new Lizard(Math.random()*C.PEN_WIDTH, Math.random()*C.PEN_HEIGHT, newBrain,frameCount));
             }
             frameCount ++;
             System.out.println(lizards.size());
@@ -162,12 +177,7 @@ public final class Simulator extends Thread{
             
         }
     }
-    public void setEnergyForLizardReproduction(double energy){
-        
-    }
-    public void setFoodReGrowTime(int cycles){
-        
-    }
+   
     private void evolveBrains(Brain[] brains){
         
         int numberOfBrainsInNextGen = (int)(brains.length/C.RATIO_OF_BRAINS_IN_NEXT_GEN);

@@ -20,6 +20,9 @@ public class Brain{
     public double getScore(){
         return _score;
     }
+    public Neuron[] getNeurons(){
+        return _neurons;
+    }
     public void setScore(double score){
         _score = score;
     }
