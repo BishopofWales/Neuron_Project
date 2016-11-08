@@ -84,9 +84,9 @@ public class BrainEvolver extends Application {
             public void handle(long currentNanoTime)
             {
                 if(!posData.isEmpty()){
-                    Point2D.Double[][] objectsToRender;
+                    ArrayList<Point2D.Double>[] objectsToRender;
                     try{
-                        objectsToRender = (Point2D.Double[][])posData.take();
+                        objectsToRender = (ArrayList<Point2D.Double>[])posData.take();
                     }
                     catch(InterruptedException e){
                         objectsToRender = null;

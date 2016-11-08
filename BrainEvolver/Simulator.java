@@ -88,13 +88,12 @@ public final class Simulator extends Thread{
                // Or we could just do this:
                // ex.printStackTrace();
            }
-
     }
     private void runLizardPen(){
         Shape[] worldGeom;
-        Point2D.Double[][] objectsToRender = new Point2D.Double[10][];
-        objectsToRender[C.LIZARD_RENDER_INDEX] = new Point2D.Double[50000];
-        objectsToRender[C.FOOD_RENDER_INDEX] = new Point2D.Double[C.NUMBER_OF_FOODS_IN_PEN];
+        ArrayList<Point2D.Double>[] objectsToRender = new ArrayList[10];
+        objectsToRender[C.LIZARD_RENDER_INDEX] = new ArrayList();
+        objectsToRender[C.FOOD_RENDER_INDEX] = new ArrayList();
         Map<Shape,Food> foodShapeFoodMap = new HashMap();
         lizards = new ArrayList();
         int frameCount = 0;
@@ -153,17 +152,19 @@ public final class Simulator extends Thread{
             }
             frameCount ++;
             System.out.println(lizards.size());
+            objectsToRender[C.FOOD_RENDER_INDEX].clear();
+            objectsToRender[C.LIZARD_RENDER_INDEX].clear();
             {
                 int count = 0;
                 for (Shape shape : worldGeom) {
                     if (shape.visible) {
-                        objectsToRender[C.FOOD_RENDER_INDEX][count] = shape.getLocation();
+                        objectsToRender[C.FOOD_RENDER_INDEX].add(shape.getLocation());
                         count++;
                     }
                 }
             }
             for(int i = 0; i < lizards.size();i++){
-                objectsToRender[C.LIZARD_RENDER_INDEX][i] = lizards.get(i).getPosition();
+                objectsToRender[C.LIZARD_RENDER_INDEX].add(lizards.get(i).getPosition());
             }
             _displayQueue.offer(objectsToRender);
             while(_paused.getBoolean()){
